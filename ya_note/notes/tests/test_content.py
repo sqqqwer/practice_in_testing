@@ -22,18 +22,18 @@ class TestRoutes(TestCase):
                                                     author=cls.user_creator)
 
     def test_note_non_author_visibility(self):
-        users_note_count = (
-            (self.user_creator, 1),
-            (self.user_authorized, 0)
+        users_is_note_visible = (
+            (self.user_creator, True),
+            (self.user_authorized, False)
         )
         url = reverse('notes:list')
-        for user, note_count in users_note_count:
+        for user, is_note_visible in users_is_note_visible:
             with self.subTest(user=user):
                 self.client.force_login(user)
                 response = self.client.get(url)
 
                 context_object = response.context['object_list']
-                self.assertEqual(context_object.exists(), note_count)
+                self.assertEqual(context_object.exists(), is_note_visible)
 
     def test_pages_contains_form(self):
         urls = (
