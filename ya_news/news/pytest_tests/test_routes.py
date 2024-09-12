@@ -7,17 +7,20 @@ from django.urls import reverse
 
 
 @pytest.mark.parametrize(
-    'name, args',
+    'name, note_object',
     (
         ('news:home', None),
-        ('news:detail', pytest.lazy_fixture('get_news_id')),
+        ('news:detail', pytest.lazy_fixture('news')),
         ('users:login', None),
         ('users:logout', None),
         ('users:signup', None),
     )
 )
-def test_pages_availability(client, name, args):
-    url = reverse(name, args=args)
+def test_pages_availability(client, name, note_object):
+    if note_object:
+        url = reverse(name, args=(note_object.id,))
+    else:
+        url = reverse(name)
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
 
@@ -37,9 +40,9 @@ def test_availability_for_comment_edit_and_delete(
     user_client,
     status,
     name,
-    get_comment_id
+    comment
 ):
-    url = reverse(name, args=get_comment_id)
+    url = reverse(name, args=(comment.id,))
     response = user_client.get(url)
     assert response.status_code == status
 
@@ -48,9 +51,9 @@ def test_availability_for_comment_edit_and_delete(
     'name',
     ('news:edit', 'news:delete')
 )
-def test_redirect_for_anonymous_client(client, name, get_comment_id):
+def test_redirect_for_anonymous_client(client, name, comment):
     login_url = reverse('users:login')
-    url = reverse(name, args=get_comment_id)
+    url = reverse(name, args=(comment.id,))
     redirect_url = f'{login_url}?next={url}'
     response = client.get(url)
     assertRedirects(response, redirect_url)

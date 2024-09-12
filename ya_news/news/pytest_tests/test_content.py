@@ -22,8 +22,9 @@ def test_news_order(client, ten_news):
     assert all_dates == sorted_dates
 
 
-def test_comments_order(client, get_news_detail_url, ten_comments):
-    response = client.get(get_news_detail_url)
+def test_comments_order(client, news, ten_comments):
+    url = reverse('news:detail', args=(news.id,))
+    response = client.get(url)
     assert 'news' in response.context
     news = response.context['news']
     all_comments = news.comment_set.all()
@@ -32,12 +33,14 @@ def test_comments_order(client, get_news_detail_url, ten_comments):
     assert all_timestamps == sorted_timestamps
 
 
-def test_anonymous_client_has_no_form(client, get_news_detail_url):
-    response = client.get(get_news_detail_url)
+def test_anonymous_client_has_no_form(client, news):
+    url = reverse('news:detail', args=(news.id,))
+    response = client.get(url)
     assert 'form' not in response.context
 
 
-def test_authorized_client_has_form(author_client, get_news_detail_url):
-    response = author_client.get(get_news_detail_url)
+def test_authorized_client_has_form(author_client, news):
+    url = reverse('news:detail', args=(news.id,))
+    response = author_client.get(url)
     assert 'form' in response.context
     assert isinstance(response.context['form'], CommentForm)

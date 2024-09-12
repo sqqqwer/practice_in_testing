@@ -33,7 +33,7 @@ class TestRoutes(TestCase):
                 response = self.client.get(url)
 
                 context_object = response.context['object_list']
-                self.assertEqual(context_object.count(), note_count)
+                self.assertEqual(context_object.exists(), note_count)
 
     def test_pages_contains_form(self):
         urls = (

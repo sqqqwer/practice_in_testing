@@ -23,11 +23,19 @@ class TestRoutes(TestCase):
                                                     slug='testslug',
                                                     author=cls.user_creator)
 
+        cls.URL_NOTE_DETAIL = ('notes:detail', (cls.user_creator_note.slug,))
+        cls.URL_NOTE_EDIT = ('notes:edit', (cls.user_creator_note.slug,))
+        cls.URL_NOTE_DELETE = ('notes:delete', (cls.user_creator_note.slug,))
+        cls.URL_NOTE_ADD = ('notes:add', None)
+        cls.URL_NOTE_LIST = ('notes:list', None)
+        cls.URL_NOTE_SUCCESS = ('notes:success', None)
+        cls.URL_USERS_LOGIN = 'users:login'
+
     def test_users_access_note(self):
         urls = (
-            ('notes:detail', (self.user_creator_note.slug,)),
-            ('notes:edit', (self.user_creator_note.slug,)),
-            ('notes:delete', (self.user_creator_note.slug,)),
+            self.URL_NOTE_DETAIL,
+            self.URL_NOTE_EDIT,
+            self.URL_NOTE_DELETE,
         )
         users_http_statues = (
             (self.user_creator, HTTPStatus.OK),
@@ -45,13 +53,13 @@ class TestRoutes(TestCase):
 
     def test_user_pages_availabile(self):
         urls = (
-            'notes:list',
-            'notes:add',
-            'notes:success',
+            self.URL_NOTE_LIST,
+            self.URL_NOTE_ADD,
+            self.URL_NOTE_SUCCESS,
         )
-        for name in urls:
-            with self.subTest(name=name):
-                url = reverse(name)
+        for name, args in urls:
+            with self.subTest(name=name, args=args):
+                url = reverse(name, args=args)
                 self.client.force_login(self.user_authorized)
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -59,7 +67,7 @@ class TestRoutes(TestCase):
     def test_anonymous_pages_availabile(self):
         urls = (
             'notes:home',
-            'users:login',
+            self.URL_USERS_LOGIN,
             'users:logout',
             'users:signup'
         )
@@ -72,14 +80,14 @@ class TestRoutes(TestCase):
 
     def test_anonymous_login_redirect(self):
         urls = (
-            ('notes:add', None),
-            ('notes:list', None),
-            ('notes:success', None),
-            ('notes:detail', (self.user_creator_note.slug,)),
-            ('notes:edit', (self.user_creator_note.slug,)),
-            ('notes:delete', (self.user_creator_note.slug,)),
+            self.URL_NOTE_LIST,
+            self.URL_NOTE_ADD,
+            self.URL_NOTE_SUCCESS,
+            self.URL_NOTE_DETAIL,
+            self.URL_NOTE_EDIT,
+            self.URL_NOTE_DELETE,
         )
-        login_url = reverse('users:login')
+        login_url = reverse(self.URL_USERS_LOGIN)
 
         for name, args in urls:
             with self.subTest(name=name, args=args):

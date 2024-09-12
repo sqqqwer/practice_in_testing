@@ -44,6 +44,7 @@ class TestRoutes(TestCase):
             slug=cls.NOTE_SLUG,
             author=cls.user_creator
         )
+        cls.expected_note_count = Note.objects.count()
 
         cls.login_url = reverse('users:login')
         cls.success_url = reverse('notes:success')
@@ -65,7 +66,7 @@ class TestRoutes(TestCase):
         self.assertRedirects(response, redirect_url)
 
         note_count = Note.objects.count()
-        self.assertEqual(note_count, 1)
+        self.assertEqual(note_count, self.expected_note_count)
 
     def test_anonymous_cant_edit_note(self):
         url = self.url_note_edit
@@ -88,7 +89,7 @@ class TestRoutes(TestCase):
         self.assertRedirects(response, redirect_url)
 
         note_count = Note.objects.count()
-        self.assertEqual(note_count, 1)
+        self.assertEqual(note_count, self.expected_note_count)
 
     def test_non_author_cant_edit_note(self):
         response = self.non_author_client.post(
@@ -107,17 +108,18 @@ class TestRoutes(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
         note_count = Note.objects.count()
-        self.assertEqual(note_count, 1)
+        self.assertEqual(note_count, self.expected_note_count)
 
     def test_user_can_create_note(self):
         response = self.author_client.post(
             self.url_note_create,
             self.NOTE_CREATE_DATA
         )
+        self.expected_note_count += 1
         self.assertRedirects(response, self.success_url)
 
         note_count = Note.objects.count()
-        self.assertEqual(note_count, 2)
+        self.assertEqual(note_count, self.expected_note_count)
 
     def test_user_can_edit_note(self):
         response = self.author_client.post(
@@ -132,10 +134,11 @@ class TestRoutes(TestCase):
 
     def test_user_can_delete_note(self):
         response = self.author_client.delete(self.url_note_delete)
+        self.expected_note_count -= 1
         self.assertRedirects(response, self.success_url)
 
         note_count = Note.objects.count()
-        self.assertEqual(note_count, 0)
+        self.assertEqual(note_count, self.expected_note_count)
 
     def test_user_cant_create_note_with_not_unique_slug(self):
         response = self.author_client.post(
@@ -152,7 +155,7 @@ class TestRoutes(TestCase):
         )
 
         note_count = Note.objects.count()
-        self.assertEqual(note_count, 1)
+        self.assertEqual(note_count, self.expected_note_count)
 
     def test_empty_slug(self):
         no_slug_create_data = self.NOTE_CREATE_DATA
@@ -161,8 +164,9 @@ class TestRoutes(TestCase):
             self.url_note_create,
             no_slug_create_data
         )
+        self.expected_note_count += 1
         self.assertRedirects(response, self.success_url)
-        self.assertEqual(Note.objects.count(), 2)
+        self.assertEqual(Note.objects.count(), self.expected_note_count)
         new_note = Note.objects.last()
         expected_slug = slugify(no_slug_create_data['title'])
 

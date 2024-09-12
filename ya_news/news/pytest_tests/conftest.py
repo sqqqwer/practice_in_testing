@@ -4,7 +4,6 @@ import pytest
 from django.conf import settings
 from django.test.client import Client
 from django.utils import timezone
-from django.urls import reverse
 
 from news.models import Comment, News
 
@@ -40,11 +39,10 @@ def reader_client(reader):
 
 @pytest.fixture
 def news():
-    news = News.objects.create(
+    return News.objects.create(
         title='Заголовок',
         text='Текст'
     )
-    return news
 
 
 @pytest.fixture
@@ -62,23 +60,12 @@ def ten_news():
 
 
 @pytest.fixture
-def get_news_id(news):
-    return (news.id,)
-
-
-@pytest.fixture
-def get_news_detail_url(get_news_id):
-    return reverse('news:detail', args=get_news_id)
-
-
-@pytest.fixture
 def comment(news, author):
-    comment = Comment.objects.create(
+    return Comment.objects.create(
         news=news,
         author=author,
         text='Текст комментария'
     )
-    return comment
 
 
 @pytest.fixture
@@ -92,23 +79,3 @@ def ten_comments(news, author):
         )
         comment.created = now + timedelta(days=index)
         comment.save()
-
-
-@pytest.fixture
-def get_comment_id(comment):
-    return (comment.id,)
-
-
-@pytest.fixture
-def get_comment_edit_url(get_comment_id):
-    return reverse('news:edit', args=get_comment_id)
-
-
-@pytest.fixture
-def get_comment_delete_url(get_comment_id):
-    return reverse('news:delete', args=get_comment_id)
-
-
-@pytest.fixture
-def get_url_to_comment_section(get_news_detail_url):
-    return get_news_detail_url + '#comments'
